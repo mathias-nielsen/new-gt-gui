@@ -1,0 +1,58 @@
+{
+  "name": "new-gastown-gui",
+  "version": "1.0.0",
+  "description": "DTU project on GUIs for Agent Orchestration frameworks",
+  "license": "ISC",
+  "author": "mathias-nielsen",
+  "type": "commonjs",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k -n vite,tsc,electron -c blue,yellow,magenta \"vite\" \"tsc -p tsconfig.engine.json --watch --preserveWatchOutput\" \"wait-on http://localhost:5173 dist-electron/main.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build:engine": "tsc -p tsconfig.engine.json",
+    "build": "npm run build:engine && vite build",
+    "start": "npm run build:engine && electron .",
+    "dist": "npm run build && electron-builder",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.engine.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^41.5.0",
+    "electron-builder": "^25.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.11",
+    "wait-on": "^9.0.5"
+  },
+  "dependencies": {
+    "@gastown/gt": "^0.12.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zustand": "^5.0.13"
+  },
+  "build": {
+    "appId": "com.mathiasnielsen.gastowngui",
+    "productName": "Gastown GUI",
+    "files": [
+      "dist-electron/**",
+      "dist/**"
+    ],
+    "asarUnpack": [
+      "node_modules/@gastown/gt/bin/**"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
