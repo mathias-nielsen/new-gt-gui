@@ -14,5 +14,5 @@
     "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["main.ts", "engine/**/*.ts"]
+  "include": ["main.ts", "engine/**/*.ts", "shared/**/*.ts"]
 }
