@@ -6,8 +6,8 @@ const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
 
 const createWindow = () => {
     const window = new BrowserWindow({
-        width: 900,
-        height: 650,
+        width: 1920,
+        height: 1080,
         webPreferences: {
             preload: path.join(__dirname, 'engine', 'preload.js'),
             contextIsolation: true,
