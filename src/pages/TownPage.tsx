@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import { NavItem } from "../components/Towns";
 import { useGastownRunner } from "../hooks/useGastownRunner";
 import { toast } from "../lib/toast";
+import { useWorkspace } from "../stores/workspaceStore";
 
 const NAV_ITEMS = [
     { to: "mayor", label: "Mayor", icon: Crown },
@@ -12,8 +13,15 @@ const NAV_ITEMS = [
 ];
 
 export default function TownPage() {
+    const { setUpStatus } = useWorkspace();
+
     const runner = useGastownRunner((entry) => {
-        if (entry.exitCode === 0) toast.success("Workspace ready");
+        if (entry.exitCode === 0) {
+            setUpStatus("ready");
+            toast.success("Workspace ready");
+        } else {
+            setUpStatus("failed");
+        }
     });
 
     useEffect(() => {
@@ -37,7 +45,7 @@ export default function TownPage() {
                 ))}
             </Stack>
 
-            <Box flex="1" px={8} py={10} overflow="auto">
+            <Box flex="1" minH={0} px={8} py={10} overflow="hidden">
                 <Outlet />
             </Box>
         </Flex>

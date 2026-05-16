@@ -3,39 +3,33 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 
-export function TerminalPane() {
+type Props = {
+    terminal: Terminal;
+};
+
+export function TerminalPane({ terminal }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const termRef = useRef<Terminal | null>(null);
-    const fitAddonRef = useRef<FitAddon | null>(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
-
-        const term = new Terminal({ cursorBlink: true, fontSize: 13, fontFamily: "monospace" });
+        // Terminal size:
         const fitAddon = new FitAddon();
-        term.loadAddon(fitAddon);
-        term.open(containerRef.current);
-        fitAddon.fit();
+        terminal.loadAddon(fitAddon);
+        terminal.open(containerRef.current);
 
-        termRef.current = term;
-        fitAddonRef.current = fitAddon;
-
-        term.onData((data) => window.mayor.write(data));
-        window.mayor.onData((data) => term.write(data));
-        window.mayor.attach();
+        // Defer fit until flex layout has settled; calling it synchronously
+        // gives wrong dimensions, which misaligns cursor tracking.
+        const frame = requestAnimationFrame(() => fitAddon.fit());
 
         const observer = new ResizeObserver(() => {
             fitAddon.fit();
-            window.mayor.resize(term.cols, term.rows);
+            window.mayor.resize(terminal.cols, terminal.rows);
         });
         observer.observe(containerRef.current);
 
         return () => {
+            cancelAnimationFrame(frame);
             observer.disconnect();
-            window.mayor.detach();
-            term.dispose();
-            termRef.current = null;
-            fitAddonRef.current = null;
         };
     }, []);
 

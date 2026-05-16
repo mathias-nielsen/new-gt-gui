@@ -40,7 +40,11 @@ const mayorAPI: MayorAPI = {
     detach: () => ipcRenderer.invoke("mayor:detach"),
     write: (data) => ipcRenderer.send("mayor:write", data),
     resize: (cols, rows) => ipcRenderer.send("mayor:resize", cols, rows),
-    onData: (callback) => ipcRenderer.on("mayor:data", (_e: IpcRendererEvent, data: string) => callback(data)),
+    onData: (callback) => {
+        const handler = (_e: IpcRendererEvent, data: string) => callback(data);
+        ipcRenderer.on("mayor:data", handler);
+        return () => ipcRenderer.removeListener("mayor:data", handler);
+    },
 };
 
 contextBridge.exposeInMainWorld("gt", gtAPI);

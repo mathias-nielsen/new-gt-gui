@@ -42,7 +42,10 @@ export class MayorIntegration {
         });
 
         const win = this.window;
-        this.ptyProcess.onData((data) => win.webContents.send("mayor:data", data));
+        this.ptyProcess.onData((data) => {
+            win.webContents.send("mayor:data", data);
+        });
+
         this.ptyProcess.onExit(() => {
             this.ptyProcess = null;
             win.webContents.send("mayor:exit");

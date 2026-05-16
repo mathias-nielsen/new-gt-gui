@@ -15,9 +15,11 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.engine.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "electron-rebuild -f -w node-pty"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -56,7 +58,8 @@
       "dist/**"
     ],
     "asarUnpack": [
-      "node_modules/@gastown/gt/bin/**"
+      "node_modules/@gastown/gt/bin/**",
+      "node_modules/node-pty/**"
     ],
     "mac": {
       "target": "dmg",
