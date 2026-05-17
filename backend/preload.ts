@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import type { GtAPI, GtChunkPayload, GtExitPayload } from "../shared/gt-api";
 import type { StorageAPI } from "../shared/storage-api";
-import type { MayorAPI } from "../shared/mayor-api";
+import { MayorAPI } from "../shared/mayor-api";
 
 /* Docs
 https://www.electronjs.org/docs/latest/api/context-bridge

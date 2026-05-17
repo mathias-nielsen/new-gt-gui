@@ -1,15 +1,10 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
-import { GastownIntegration } from "./backend/gastown-integration";
-import { MayorIntegration } from "./backend/mayor-integration";
-import { registerStorageIpc } from "./backend/storage-integration";
+import { registerStorageIPC } from "./backend/storage";
+import { registerGastownIPC } from "./backend/gastown";
+import { registerMayorIPC } from "./backend/mayor";
 
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-
-const createGastownIntegration = (window: BrowserWindow) => {
-    GastownIntegration.getInstance().registerIpc(window);
-    MayorIntegration.getInstance().registerIpc(window);
-};
 
 const createWindow = () => {
     const window = new BrowserWindow({
@@ -29,11 +24,12 @@ const createWindow = () => {
         window.loadFile(path.join(__dirname, "..", "dist", "index.html"));
     }
 
-    createGastownIntegration(window);
+    registerGastownIPC(window);
+    registerMayorIPC(window);
+    registerStorageIPC();
 };
 
 app.whenReady().then(() => {
-    registerStorageIpc();
     createWindow();
 
     app.on("activate", () => {

@@ -1,32 +1,44 @@
 import * as pty from "node-pty";
-import { app, ipcMain, type BrowserWindow } from "electron";
+import { app, type BrowserWindow } from "electron";
 import path from "path";
-import { GastownIntegration } from "./gastown-integration";
+import { GastownIntegration } from "../gastown/gastown-integration";
 
 export class MayorIntegration {
     private static instance: MayorIntegration;
-    private ptyProcess: pty.IPty | null = null;
-    private window: BrowserWindow | null = null;
     private readonly binaryPath: string;
+    private window: BrowserWindow | null = null;
 
-    private constructor() {
+    private ptyProcess: pty.IPty | null = null;
+
+    /**
+     *  Singleton pattern
+     */
+    private constructor(window: BrowserWindow) {
+        this.window = window;
         const binaryName = process.platform === "win32" ? "gt.exe" : "gt";
         const relative = path.join("node_modules", "@gastown", "gt", "bin", binaryName);
         if (app.isPackaged) {
             this.binaryPath = path.join(process.resourcesPath, "app.asar.unpacked", relative);
         } else {
-            this.binaryPath = path.join(__dirname, "..", "..", relative);
+            this.binaryPath = path.join(app.getAppPath(), relative);
         }
+    }
+
+    static initialize(window: BrowserWindow): void {
+        if (MayorIntegration.instance) return;
+        MayorIntegration.instance = new MayorIntegration(window);
     }
 
     static getInstance(): MayorIntegration {
-        if (!MayorIntegration.instance) {
-            MayorIntegration.instance = new MayorIntegration();
-        }
+        if (!MayorIntegration.instance) throw new Error("MayorIntegration not initialized");
         return MayorIntegration.instance;
     }
 
-    private get cwd(): string | undefined {
+    /**
+     * get: Current Working Directory
+     * Used for externally located Gastown workspace folders
+     */
+    private getCwd(): string | undefined {
         return GastownIntegration.getInstance().getCwd();
     }
 
@@ -37,7 +49,7 @@ export class MayorIntegration {
             name: "xterm-color",
             cols: 80,
             rows: 24,
-            cwd: this.cwd,
+            cwd: this.getCwd(),
             env: process.env as Record<string, string>,
         });
 
@@ -63,13 +75,5 @@ export class MayorIntegration {
 
     resize(cols: number, rows: number): void {
         this.ptyProcess?.resize(cols, rows);
-    }
-
-    registerIpc(window: BrowserWindow): void {
-        this.window = window;
-        ipcMain.handle("mayor:attach", () => this.attach());
-        ipcMain.handle("mayor:detach", () => this.detach());
-        ipcMain.on("mayor:write", (_event, data: string) => this.write(data));
-        ipcMain.on("mayor:resize", (_event, cols: number, rows: number) => this.resize(cols, rows));
     }
 }

@@ -1,30 +1,54 @@
 import { spawn, type ChildProcess } from "child_process";
-import { app, ipcMain, type BrowserWindow } from "electron";
+import { app, type BrowserWindow } from "electron";
 import path from "path";
-import type { GtRunResult, GtKillResult } from "../shared/gt-api";
+import type { GtRunResult, GtKillResult } from "../../shared/gt-api";
 
 export class GastownIntegration {
     private static instance: GastownIntegration;
-    private runs = new Map<string, ChildProcess>();
-    private window: BrowserWindow | null = null;
     private readonly binaryPath: string;
+    private window: BrowserWindow | null = null;
+
+    private runs = new Map<string, ChildProcess>();
     private cwd: string | undefined;
 
-    private constructor() {
+    /**
+     *  Singleton pattern
+     */
+    private constructor(window: BrowserWindow) {
+        this.window = window;
         const binaryName = process.platform === "win32" ? "gt.exe" : "gt";
         const relative = path.join("node_modules", "@gastown", "gt", "bin", binaryName);
         if (app.isPackaged) {
             this.binaryPath = path.join(process.resourcesPath, "app.asar.unpacked", relative);
         } else {
-            this.binaryPath = path.join(__dirname, "..", "..", relative);
+            this.binaryPath = path.join(app.getAppPath(), relative);
         }
     }
 
+    static initialize(window: BrowserWindow): void {
+        if (GastownIntegration.instance) return;
+        GastownIntegration.instance = new GastownIntegration(window);
+    }
+
     static getInstance(): GastownIntegration {
-        if (!GastownIntegration.instance) {
-            GastownIntegration.instance = new GastownIntegration();
-        }
+        if (!GastownIntegration.instance) throw new Error("GastownIntegration not initialized");
         return GastownIntegration.instance;
+    }
+
+    /**
+     * Set: Current Working Directory
+     * Used for externally located Gastown workspace folders
+     */
+    setCwd(path: string): void {
+        this.cwd = path;
+    }
+
+    /**
+     * get: Current Working Directory
+     * Used for externally located Gastown workspace folders
+     */
+    getCwd(): string | undefined {
+        return this.cwd;
     }
 
     run(runId: string, args: string[] = []): GtRunResult {
@@ -38,34 +62,26 @@ export class GastownIntegration {
             return { ok: false, error: "no window registered" };
         }
 
-        const child = spawn(this.binaryPath, args, { env: process.env, cwd: this.cwd });
+        const gastownProcess = spawn(this.binaryPath, args, { env: process.env, cwd: this.cwd });
 
-        this.runs.set(runId, child);
+        this.runs.set(runId, gastownProcess);
 
         const win = this.window;
-        child.stdout?.on("data", (d: Buffer) =>
-            win.webContents.send("gt:stdout", { runId, chunk: d.toString() })
+        gastownProcess.stdout?.on("data", (data: Buffer) =>
+            win.webContents.send("gt:stdout", { runId, chunk: data.toString() })
         );
-        child.stderr?.on("data", (d: Buffer) =>
-            win.webContents.send("gt:stderr", { runId, chunk: d.toString() })
+        gastownProcess.stderr?.on("data", (data: Buffer) =>
+            win.webContents.send("gt:stderr", { runId, chunk: data.toString() })
         );
-        child.on("error", (err) =>
+        gastownProcess.on("error", (err) =>
             win.webContents.send("gt:stderr", { runId, chunk: `spawn error: ${err.message}\n` })
         );
-        child.on("exit", (code, signal) => {
+        gastownProcess.on("exit", (code, signal) => {
             this.runs.delete(runId);
             win.webContents.send("gt:exit", { runId, code, signal });
         });
 
-        return { ok: true, pid: child.pid, binaryPath: this.binaryPath };
-    }
-
-    setCwd(path: string): void {
-        this.cwd = path;
-    }
-
-    getCwd(): string | undefined {
-        return this.cwd;
+        return { ok: true, pid: gastownProcess.pid, binaryPath: this.binaryPath };
     }
 
     kill(runId: string): GtKillResult {
@@ -80,15 +96,5 @@ export class GastownIntegration {
 
         child.kill();
         return { ok: true };
-    }
-
-    registerIpc(window: BrowserWindow): void {
-        this.window = window;
-        ipcMain.handle(
-            "gt:run",
-            (_event, runId: string, args: string[]): GtRunResult => this.run(runId, args)
-        );
-        ipcMain.handle("gt:kill", (_event, runId: string): GtKillResult => this.kill(runId));
-        ipcMain.handle("gt:setCwd", (_event, path: string): void => this.setCwd(path));
     }
 }
