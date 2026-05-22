@@ -6,6 +6,7 @@ import type { GtRunResult, GtKillResult } from "../../shared/gt-api";
 export class GastownIntegration {
     private static instance: GastownIntegration;
     private readonly binaryPath: string;
+    private readonly doltBinDir: string;
     private window: BrowserWindow | null = null;
 
     private runs = new Map<string, ChildProcess>();
@@ -20,8 +21,10 @@ export class GastownIntegration {
         const relative = path.join("node_modules", "@gastown", "gt", "bin", binaryName);
         if (app.isPackaged) {
             this.binaryPath = path.join(process.resourcesPath, "app.asar.unpacked", relative);
+            this.doltBinDir = path.join(process.resourcesPath, "app.asar.unpacked", "bin", "dolt");
         } else {
             this.binaryPath = path.join(app.getAppPath(), relative);
+            this.doltBinDir = path.join(app.getAppPath(), "bin", "dolt");
         }
     }
 
@@ -62,7 +65,9 @@ export class GastownIntegration {
             return { ok: false, error: "no window registered" };
         }
 
-        const gastownProcess = spawn(this.binaryPath, args, { env: process.env, cwd: this.cwd });
+        const pathSep = process.platform === "win32" ? ";" : ":";
+        const env = { ...process.env, PATH: `${this.doltBinDir}${pathSep}${process.env.PATH}` };
+        const gastownProcess = spawn(this.binaryPath, args, { env, cwd: this.cwd });
 
         this.runs.set(runId, gastownProcess);
 

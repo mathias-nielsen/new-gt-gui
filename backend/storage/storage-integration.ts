@@ -6,7 +6,6 @@ const storagePath = () => path.join(app.getPath("userData"), "gastown-storage.js
 
 export const read = (): Record<string, unknown> => {
     try {
-        console.log(storagePath());
         return JSON.parse(fs.readFileSync(storagePath(), "utf-8"));
     } catch {
         return {};

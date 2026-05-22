@@ -1,75 +1,79 @@
 {
-  "name": "new-gastown-gui",
-  "version": "1.0.0",
-  "description": "DTU project on GUIs for Agent Orchestration frameworks",
-  "license": "ISC",
-  "author": "mathias-nielsen",
-  "type": "commonjs",
-  "main": "dist-electron/main.js",
-  "scripts": {
-    "dev": "concurrently -k -n vite,tsc,electron -c blue,yellow,magenta \"vite\" \"tsc -p tsconfig.engine.json --watch --preserveWatchOutput\" \"wait-on http://localhost:5173 dist-electron/main.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
-    "build:engine": "tsc -p tsconfig.engine.json",
-    "build": "npm run build:engine && vite build",
-    "start": "npm run build:engine && electron .",
-    "dist": "npm run build && electron-builder",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.engine.json",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "electron-rebuild -f -w node-pty"
-  },
-  "devDependencies": {
-    "@electron/rebuild": "^4.0.4",
-    "@types/node": "^25.6.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0",
-    "electron": "^41.5.0",
-    "electron-builder": "^25.0.0",
-    "prettier": "3.8.3",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.11",
-    "wait-on": "^9.0.5"
-  },
-  "dependencies": {
-    "@chakra-ui/react": "^3.35.0",
-    "@emotion/react": "^11.14.0",
-    "@gastown/gt": "^0.12.0",
-    "@tailwindcss/vite": "^4.3.0",
-    "@xterm/addon-fit": "^0.11.0",
-    "@xterm/xterm": "^6.0.0",
-    "lucide-react": "^1.14.0",
-    "next-themes": "^0.4.6",
-    "node-pty": "^1.1.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-icons": "^5.6.0",
-    "react-router-dom": "^7.15.0",
-    "tailwindcss": "^4.3.0",
-    "zustand": "^5.0.13"
-  },
-  "build": {
-    "appId": "com.mathiasnielsen.gastowngui",
-    "productName": "Gastown GUI",
-    "files": [
-      "dist-electron/**",
-      "dist/**"
-    ],
-    "asarUnpack": [
-      "node_modules/@gastown/gt/bin/**",
-      "node_modules/node-pty/**"
-    ],
-    "mac": {
-      "target": "dmg",
-      "category": "public.app-category.developer-tools"
+    "name": "new-gastown-gui",
+    "version": "1.0.0",
+    "description": "DTU project on GUIs for Agent Orchestration frameworks",
+    "license": "ISC",
+    "author": "mathias-nielsen",
+    "type": "commonjs",
+    "main": "dist-electron/main.js",
+    "scripts": {
+        "dev": "concurrently -k -n vite,tsc,electron -c blue,yellow,magenta \"vite\" \"tsc -p tsconfig.engine.json --watch --preserveWatchOutput\" \"wait-on http://localhost:5173 dist-electron/main.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+        "build:engine": "tsc -p tsconfig.engine.json",
+        "build": "npm run build:engine && vite build",
+        "start": "npm run build:engine && electron .",
+        "dist": "npm run build && electron-builder",
+        "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.engine.json",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "postinstall": "electron-rebuild -f -w node-pty && node scripts/install-dolt.js"
     },
-    "win": {
-      "target": "nsis"
+    "devDependencies": {
+        "@electron/rebuild": "^4.0.4",
+        "@types/node": "^25.6.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "concurrently": "^9.2.1",
+        "cross-env": "^10.1.0",
+        "electron": "^41.5.0",
+        "electron-builder": "^25.0.0",
+        "prettier": "3.8.3",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11",
+        "wait-on": "^9.0.5"
     },
-    "linux": {
-      "target": "AppImage"
+    "dependencies": {
+        "@beads/bd": "^1.0.4",
+        "@chakra-ui/react": "^3.35.0",
+        "@emotion/react": "^11.14.0",
+        "@gastown/gt": "^0.12.0",
+        "@tailwindcss/vite": "^4.3.0",
+        "@xterm/addon-fit": "^0.11.0",
+        "@xterm/xterm": "^6.0.0",
+        "lucide-react": "^1.14.0",
+        "next-themes": "^0.4.6",
+        "node-pty": "^1.1.0",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "react-icons": "^5.6.0",
+        "react-router-dom": "^7.15.0",
+        "tailwindcss": "^4.3.0",
+        "zustand": "^5.0.13"
+    },
+    "build": {
+        "appId": "com.mathiasnielsen.gastowngui",
+        "productName": "Gastown GUI",
+        "files": [
+            "dist-electron/**",
+            "dist/**",
+            "bin/dolt/**"
+        ],
+        "asarUnpack": [
+            "node_modules/@gastown/gt/bin/**",
+            "node_modules/@beads/bd/bin/**",
+            "node_modules/node-pty/**",
+            "bin/dolt/**"
+        ],
+        "mac": {
+            "target": "dmg",
+            "category": "public.app-category.developer-tools"
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "linux": {
+            "target": "AppImage"
+        }
     }
-  }
 }
