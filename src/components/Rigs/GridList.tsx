@@ -21,7 +21,7 @@ export function GridList({ rigs, onOpen, onSettings }: GridListProps) {
     return (
         <Grid templateColumns="repeat(2, 1fr)" gap={4}>
             {rigs.map((rig) => (
-                <RigItem key={rig.id} rig={rig} onOpen={onOpen} onSettings={onSettings} />
+                <RigItem key={rig.name} rig={rig} onOpen={onOpen} onSettings={onSettings} />
             ))}
         </Grid>
     );

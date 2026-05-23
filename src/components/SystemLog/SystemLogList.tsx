@@ -9,7 +9,7 @@ export const SystemLogList = ({ entries }: { entries: SystemLogEntry[] }) => {
     return (
         <Stack gap={0}>
             {entries.map((entry) => (
-                <SystemLogEntryRow key={entry.id} entry={entry} />
+                <SystemLogEntryRow entry={entry} />
             ))}
         </Stack>
     );
