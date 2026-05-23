@@ -1,32 +1,22 @@
 import * as pty from "node-pty";
-import { app, type BrowserWindow } from "electron";
-import path from "path";
-import { GastownIntegration } from "../gastown/gastown-integration";
+import { GtBinaryAdapter } from "../gt/gt-binary-adapter";
+import { HandleData, HandleExit } from ".";
 
-export class MayorIntegration {
+export class MayorIntegration extends GtBinaryAdapter {
     private static instance: MayorIntegration;
-    private readonly binaryPath: string;
-    private window: BrowserWindow | null = null;
 
     private ptyProcess: pty.IPty | null = null;
 
     /**
      *  Singleton pattern
      */
-    private constructor(window: BrowserWindow) {
-        this.window = window;
-        const binaryName = process.platform === "win32" ? "gt.exe" : "gt";
-        const relative = path.join("node_modules", "@gastown", "gt", "bin", binaryName);
-        if (app.isPackaged) {
-            this.binaryPath = path.join(process.resourcesPath, "app.asar.unpacked", relative);
-        } else {
-            this.binaryPath = path.join(app.getAppPath(), relative);
-        }
+    private constructor() {
+        super();
     }
 
-    static initialize(window: BrowserWindow): void {
+    static initialize(): void {
         if (MayorIntegration.instance) return;
-        MayorIntegration.instance = new MayorIntegration(window);
+        MayorIntegration.instance = new MayorIntegration();
     }
 
     static getInstance(): MayorIntegration {
@@ -34,33 +24,22 @@ export class MayorIntegration {
         return MayorIntegration.instance;
     }
 
-    /**
-     * get: Current Working Directory
-     * Used for externally located Gastown workspace folders
-     */
-    private getCwd(): string | undefined {
-        return GastownIntegration.getInstance().getCwd();
-    }
-
-    attach(): void {
-        if (this.ptyProcess || !this.window) return;
+    attach(onData: HandleData, onExit: HandleExit): void {
+        if (this.ptyProcess) return;
 
         this.ptyProcess = pty.spawn(this.binaryPath, ["mayor", "attach"], {
             name: "xterm-color",
             cols: 80,
             rows: 24,
             cwd: this.getCwd(),
-            env: process.env as Record<string, string>,
+            env: this.buildEnv() as Record<string, string>,
         });
 
-        const win = this.window;
-        this.ptyProcess.onData((data) => {
-            win.webContents.send("mayor:data", data);
-        });
+        this.ptyProcess.onData(onData);
 
         this.ptyProcess.onExit(() => {
             this.ptyProcess = null;
-            win.webContents.send("mayor:exit");
+            onExit();
         });
     }
 
