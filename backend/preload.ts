@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import type { GtAPI, GtChunkPayload, GtExitPayload } from "../shared/gt-api";
 import type { StorageAPI } from "../shared/storage-api";
 import { MayorAPI } from "../shared/mayor-api";
+import { CHANNELS } from "./channels";
 
 /* Docs
 https://www.electronjs.org/docs/latest/api/context-bridge
@@ -13,40 +14,46 @@ https://www.electronjs.org/docs/latest/api/ipc-renderer
  * any output events arrive — see docs/wrapping-gt.md for the rationale.
  */
 const gtAPI: GtAPI = {
-    run: (runId, args) => ipcRenderer.invoke("gt:run", runId, args),
-    kill: (runId) => ipcRenderer.invoke("gt:kill", runId),
-    setCwd: (path) => ipcRenderer.invoke("gt:setCwd", path),
+    run: (runId, args) => ipcRenderer.invoke(CHANNELS.GT.RUN, runId, args),
+    kill: (runId) => ipcRenderer.invoke(CHANNELS.GT.KILL, runId),
+    setCwd: (path) => ipcRenderer.invoke(CHANNELS.GT.SET_CURRENT_WORKING_DIRECTORY, path),
     onStdout: (callback) =>
-        ipcRenderer.on("gt:stdout", (_e: IpcRendererEvent, payload: GtChunkPayload) =>
+        ipcRenderer.on(CHANNELS.GT.STD_OUT, (_e: IpcRendererEvent, payload: GtChunkPayload) =>
             callback(payload)
         ),
     onStderr: (callback) =>
-        ipcRenderer.on("gt:stderr", (_e: IpcRendererEvent, payload: GtChunkPayload) =>
+        ipcRenderer.on(CHANNELS.GT.STD_ERROR, (_e: IpcRendererEvent, payload: GtChunkPayload) =>
             callback(payload)
         ),
     onExit: (callback) =>
-        ipcRenderer.on("gt:exit", (_e: IpcRendererEvent, payload: GtExitPayload) =>
+        ipcRenderer.on(CHANNELS.GT.EXIT, (_e: IpcRendererEvent, payload: GtExitPayload) =>
             callback(payload)
         ),
 };
 
 const storageAPI: StorageAPI = {
-    get: (key: string) => ipcRenderer.invoke("storage:get", key),
-    set: (key: string, value: unknown) => ipcRenderer.invoke("storage:set", key, value),
+    get: (key: string) => ipcRenderer.invoke(CHANNELS.STORAGE.GET, key),
+    set: (key: string, value: unknown) => ipcRenderer.invoke(CHANNELS.STORAGE.SET, key, value),
 };
 
 const mayorAPI: MayorAPI = {
-    attach: () => ipcRenderer.invoke("mayor:attach"),
-    detach: () => ipcRenderer.invoke("mayor:detach"),
-    write: (data) => ipcRenderer.send("mayor:write", data),
-    resize: (cols, rows) => ipcRenderer.send("mayor:resize", cols, rows),
+    attach: () => ipcRenderer.invoke(CHANNELS.MAYOR.ATTACH),
+    detach: () => ipcRenderer.invoke(CHANNELS.MAYOR.DETACH),
+    write: (data) => ipcRenderer.send(CHANNELS.MAYOR.WRITE, data),
+    resize: (cols, rows) => ipcRenderer.send(CHANNELS.MAYOR.RESIZE, cols, rows),
     onData: (callback) => {
         const handler = (_e: IpcRendererEvent, data: string) => callback(data);
-        ipcRenderer.on("mayor:data", handler);
-        return () => ipcRenderer.removeListener("mayor:data", handler);
+        ipcRenderer.on(CHANNELS.MAYOR.DATA, handler);
+        return () => ipcRenderer.removeListener(CHANNELS.MAYOR.DATA, handler);
     },
 };
 
-contextBridge.exposeInMainWorld("gt", gtAPI);
-contextBridge.exposeInMainWorld("storage", storageAPI);
-contextBridge.exposeInMainWorld("mayor", mayorAPI);
+const WINDOW_OBJECT_KEYS = {
+    GT: "gt",
+    STORAGE: "storage",
+    MAYOR: "mayor",
+};
+
+contextBridge.exposeInMainWorld(WINDOW_OBJECT_KEYS.GT, gtAPI);
+contextBridge.exposeInMainWorld(WINDOW_OBJECT_KEYS.STORAGE, storageAPI);
+contextBridge.exposeInMainWorld(WINDOW_OBJECT_KEYS.MAYOR, mayorAPI);
