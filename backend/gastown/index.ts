@@ -7,7 +7,7 @@ import {
     GtRunResult,
     HandlePayload,
 } from "../../shared/gt-api";
-import { CHANNELS } from "../channels";
+import { CHANNELS } from "../../shared/channels";
 
 export const registerGastownIPC = (window: BrowserWindow) => {
     const { GT } = CHANNELS;

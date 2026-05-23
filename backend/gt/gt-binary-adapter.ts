@@ -26,7 +26,6 @@ export abstract class GtBinaryAdapter {
 
     /**
      * Set: Workspace Current Working Directory
-     * Shared across all gt-driven integrations.
      */
     setCwd(cwd: string): void {
         GtBinaryAdapter.workspaceCwd = cwd;

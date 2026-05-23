@@ -1,4 +1,4 @@
-import { CHANNELS } from "../channels";
+import { CHANNELS } from "../../shared/channels";
 import { read, write } from "./storage-integration";
 import { ipcMain } from "electron";
 

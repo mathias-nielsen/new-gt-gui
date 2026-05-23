@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from "electron";
 import { MayorIntegration } from "./mayor-integration";
-import { CHANNELS } from "../channels";
+import { CHANNELS } from "../../shared/channels";
 
 export type HandleData = (data: string) => void;
 export type HandleExit = () => void;
